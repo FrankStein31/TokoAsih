@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         b = ActivityMainBinding.inflate(layoutInflater)
         setContentView(b.root)
+        getSupportActionBar()?.hide()
 
         fragKategori = FragmentKtgri()
         fragmentPesanan = FragmentPesanan()

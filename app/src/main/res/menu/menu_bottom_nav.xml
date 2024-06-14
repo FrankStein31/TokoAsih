@@ -10,7 +10,7 @@
     <item
         android:id="@+id/itemKatgeori"
         android:icon="@drawable/ic_premium_wash"
-        android:title="Kategori"
+        android:title="Barang"
         app:showAsAction="always" />
 
 </menu>

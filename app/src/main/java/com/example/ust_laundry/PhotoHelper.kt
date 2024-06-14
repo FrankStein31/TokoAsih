@@ -1,9 +1,12 @@
 package com.example.uts_dyah
 
+import android.content.ContentResolver
+import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Environment
+import android.provider.OpenableColumns
 import android.util.Log
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -72,6 +75,27 @@ class PhotoHelper {
         imV.setImageBitmap(bmp)
         return bitMapToString(bmp)
         return ""
+    }
+
+    fun convertBitmapToString(bitmap: Bitmap): String {
+        val baos = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        val imageBytes = baos.toByteArray()
+        return Base64.encodeToString(imageBytes, Base64.DEFAULT)
+    }
+
+    fun getFileNameFromUri(uri: Uri, contentResolver: ContentResolver): String {
+        var fileName = ""
+        val cursor: Cursor? = contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1) {
+                    fileName = it.getString(nameIndex)
+                }
+            }
+        }
+        return fileName
     }
 
 }

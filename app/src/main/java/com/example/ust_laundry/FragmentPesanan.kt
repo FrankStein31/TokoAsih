@@ -2,14 +2,18 @@ package com.example.ust_laundry
 
 import android.Manifest
 import android.app.AlertDialog
+import android.content.ContentResolver
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.os.StrictMode
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -21,6 +25,9 @@ import android.widget.ListAdapter
 import android.widget.SimpleCursorAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.volley.Request
@@ -31,13 +38,20 @@ import com.example.ust_laundry.databinding.FragmentPesananBinding
 import com.example.uts_dyah.PhotoHelper
 import com.livinglifetechway.quickpermissions_kotlin.runWithPermissions
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
-import java.util.HashMap
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 class FragmentPesanan :Fragment(), View.OnClickListener {
     lateinit var b:FragmentPesananBinding
     lateinit var thisParent: MainActivity
     lateinit var dialog: AlertDialog.Builder
+    var selectedKategori: String = ""
+    private lateinit var currentPhotoPath: String
     lateinit var v:View
 
     lateinit var photoHelper: PhotoHelper
@@ -45,7 +59,7 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
     var namaFile = ""
     var fileUri = Uri.parse("")
 
-    val url = "http://172.254.1.38/web_service_laundry/crud_laundry.php"
+    val url = "http://192.168.18.40/web_service_tokoasih/crud.php"
 
     val ktgSpinner = mutableListOf<String>()
     lateinit var strKategori: ArrayAdapter<String>
@@ -102,13 +116,13 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
             }
             R.id.btnhitung -> {
                 val a = b.edBerat.text.toString()
-                val kategori = b.spKategori.selectedItem.toString()
+                val kategori = selectedKategori
                 val harga = mapKategoriHarga[kategori]
                 if (harga != null) {
                     val hasil = a.toInt() * harga.toInt()
                     b.edHarga.setText(hasil.toString())
                 } else {
-                    // Tindakan yang diambil jika harga tidak ditemukan
+                    Toast.makeText(v.context, "Harga tidak ditemukan untuk kategori ini", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -126,6 +140,11 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
         b = FragmentPesananBinding.inflate(layoutInflater)
         v = b.root
 
+        if (ktgSpinner.isNotEmpty()) {
+            selectedKategori = ktgSpinner[0]
+            b.spKategori.setText(selectedKategori, false)
+        }
+
         photoHelper = PhotoHelper()
         adapter = AdapterPesanan(data, this)
         b.recyclerView.layoutManager = LinearLayoutManager(v.context)
@@ -139,7 +158,16 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
         }
 
         b.btnChoose.setOnClickListener {
-            requestPermission()
+            val options = arrayOf("Kamera", "File Manager")
+            val builder = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            builder.setTitle("Pilih Gambar Dari")
+            builder.setItems(options) { _, which ->
+                when (which) {
+                    0 -> openCamera()
+                    1 -> openFileManager()
+                }
+            }
+            builder.show()
         }
 
         b.btnDeletepsn.setOnClickListener(this)
@@ -148,19 +176,57 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
         b.btnhitung.setOnClickListener(this)
 
         strKategori = ArrayAdapter(v.context, android.R.layout.simple_list_item_1, ktgSpinner)
-        b.spKategori.adapter = strKategori
+        b.spKategori.setAdapter(strKategori)
+        b.spKategori.setOnItemClickListener { parent, view, position, id ->
+            selectedKategori = parent.getItemAtPosition(position) as String
+        }
+        b.spKategori.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                selectedKategori = parent?.getItemAtPosition(position).toString()
+                adapter.notifyDataSetChanged()
+            }
 
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Nothing to do here
+            }
+        }
+        b.spKategori.setOnFocusChangeListener { v, hasFocus ->
+            if (!hasFocus) {
+                val enteredText = b.spKategori.text.toString()
+                if (!ktgSpinner.contains(enteredText)) {
+                    b.spKategori.setText(selectedKategori, false)
+                }
+            }
+        }
 
         return v
     }
 
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val storageDir: File = requireContext().getExternalFilesDir(null)!!
+        return File.createTempFile(
+            "JPEG_${timeStamp}_",
+            ".jpg",
+            storageDir
+        ).apply {
+            currentPhotoPath = absolutePath
+        }
+    }
+    private fun openFileManager() {
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = "image/*"
+        startActivityForResult(intent, REQUEST_IMAGE_PICK)
+    }
+
     override fun onStart() {
         super.onStart()
-        getKategori()
+        getBarang()
         showData()
     }
 
-    fun requestPermission() = runWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA ) {
+    fun openCamera() = runWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA ) {
         fileUri = photoHelper.getOutputMediaFileUri()
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri)
@@ -177,9 +243,26 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
                         namaFile = photoHelper.getMyFileName()
                         Toast.makeText(v.context, "Berhasil upload foto", Toast.LENGTH_SHORT).show()
                     }
-
                     AppCompatActivity.RESULT_CANCELED -> {
                         // kode untuk kondisi kedua jika dibatalkan
+                    }
+                }
+            }
+            REQUEST_IMAGE_PICK -> {
+                if (resultCode == AppCompatActivity.RESULT_OK && data != null) {
+                    val selectedImageUri: Uri? = data.data
+                    if (selectedImageUri != null) {
+                        try {
+                            val bitmap = MediaStore.Images.Media.getBitmap(v.context.contentResolver, selectedImageUri)
+                            b.imageView.setImageBitmap(bitmap)
+                            imStr = photoHelper.convertBitmapToString(bitmap)  // Mengubah bitmap menjadi string
+                            namaFile = photoHelper.getFileNameFromUri(selectedImageUri, v.context.contentResolver)  // Mendapatkan nama file dari URI
+                            fileUri = selectedImageUri  // Menyimpan URI file yang dipilih
+                            Toast.makeText(v.context, "Berhasil memilih gambar", Toast.LENGTH_SHORT).show()
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                            Toast.makeText(v.context, "Gagal memuat gambar", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
@@ -190,10 +273,17 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
         val request = object : StringRequest(
             Method.POST,url,
             Response.Listener { response ->
-                val jsonObject = JSONObject(response)
-                val respon = jsonObject.getString("respon")
-                if (respon.equals("1")) {
-                    Toast.makeText(v.context, "Berhasil mengirim data", Toast.LENGTH_SHORT).show()
+                Log.d("Response", response) // Tambahkan logging respons
+                val filteredResponse = response.replace("<br>", "").replace("<br/>", "")
+                try {
+                    val jsonObject = JSONObject(filteredResponse)
+                    val respon = jsonObject.getString("respon")
+                    if (respon == "1") {
+                        Toast.makeText(v.context, "Berhasil mengirim data", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                    Toast.makeText(v.context, "Kesalahan parsing data JSON", Toast.LENGTH_LONG).show()
                 }
             },
             Response.ErrorListener { error ->
@@ -203,35 +293,36 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
                 val hm = HashMap<String, String>()
                 when(mode) {
                     "insert" -> {
-                        hm.put("mode", "insert")
-                        hm.put("nama_pelanggan", b.edPelanggan.text.toString())
-                        hm.put("alamat", b.edAlamat.text.toString())
-                        hm.put("kategori", b.spKategori.selectedItem.toString())
-                        hm.put("berat", b.edBerat.text.toString())
-                        hm.put("harga", b.edHarga.text.toString())
-                        hm.put("image",imStr)
-                        hm.put("file",namaFile)
+                        hm["mode"] = "insert"
+                        hm["nama_pelanggan"] = b.edPelanggan.text.toString()
+                        hm["alamat"] = b.edAlamat.text.toString()
+                        hm["barang"] = selectedKategori
+                        hm["jumlah"] = b.edBerat.text.toString()
+                        hm["harga"] = b.edHarga.text.toString()
+                        hm["image"] = imStr
+                        hm["file"] = namaFile
                     }
                     "edit" -> {
-                        hm.put("mode", "edit")
-                        hm.put("id", id)
-                        hm.put("nama_pelanggan", b.edPelanggan.text.toString())
-                        hm.put("alamat", b.edAlamat.text.toString())
-                        hm.put("kategori", b.spKategori.selectedItem.toString())
-                        hm.put("berat", b.edBerat.text.toString())
-                        hm.put("harga", b.edHarga.text.toString())
-                        hm.put("image",imStr)
-                        hm.put("file",namaFile)
+                        hm["mode"] = "edit"
+                        hm["id"] = id
+                        hm["nama_pelanggan"] = b.edPelanggan.text.toString()
+                        hm["alamat"] = b.edAlamat.text.toString()
+                        hm["barang"] = selectedKategori
+                        hm["jumlah"] = b.edBerat.text.toString()
+                        hm["harga"] = b.edHarga.text.toString()
+                        hm["image"] = imStr
+                        hm["file"] = namaFile
                     }
                 }
                 return hm
             }
         }
-        val  queue = Volley.newRequestQueue(v.context)
+        val queue = Volley.newRequestQueue(v.context)
         queue.add(request)
     }
+
     val mapKategoriHarga = HashMap<String, String>()
-    fun getKategori() {
+    fun getBarang() {
         val request = object : StringRequest(
             Method.POST, url,
             Response.Listener { response ->
@@ -239,22 +330,26 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
                 val jsonArray = JSONArray(response)
                 for (x in 0 until jsonArray.length()) {
                     val jsonObject = jsonArray.getJSONObject(x)
-                    val kategori = jsonObject.getString("kategori")
+                    val barang = jsonObject.getString("barang")
                     val harga = jsonObject.getString("harga")
 
-                    ktgSpinner.add(kategori)
+                    ktgSpinner.add(barang)
 
                     // Simpan harga pada map kategori dan harga
-                    mapKategoriHarga[kategori] = harga
+                    mapKategoriHarga[barang] = harga
                 }
                 strKategori.notifyDataSetChanged()
+                if (selectedKategori.isEmpty() && ktgSpinner.isNotEmpty()) {
+                    selectedKategori = ktgSpinner[0]
+                    b.spKategori.setText(selectedKategori, false)
+                }
             },
             Response.ErrorListener { error ->
                 // Handle error response
             }) {
             override fun getParams(): MutableMap<String, String>? {
                 val params = HashMap<String, String>()
-                params["mode"] = "get_kategori"
+                params["mode"] = "get_barang"
                 return params
             }
         }
@@ -264,33 +359,38 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
 
     private fun showData() {
         val request = object : StringRequest(
-            Method.POST,url,
+            Method.POST, url,
             Response.Listener { response ->
-                data.clear()
-                val jsonArray = JSONArray(response)
-                for (x in 0..(jsonArray.length()-1)){
-                    val jsonObject = jsonArray.getJSONObject(x)
-                    var  frm = HashMap<String,String>()
-                    frm.put("id",jsonObject.getString("id"))
-                    frm.put("nama_pelanggan",jsonObject.getString("nama_pelanggan"))
-                    frm.put("alamat",jsonObject.getString("alamat"))
-                    frm.put("kategori",jsonObject.getString("kategori"))
-                    frm.put("berat",jsonObject.getString("berat"))
-                    frm.put("harga",jsonObject.getString("harga"))
-                    frm.put("img",jsonObject.getString("img"))
-                    frm.put("tanggal_input",jsonObject.getString("tanggal_input"))
+                try {
+                    Log.d("Response", response) // Tambahkan logging respons
+                    data.clear()
+                    val jsonArray = JSONArray(response)
+                    for (x in 0 until jsonArray.length()) {
+                        val jsonObject = jsonArray.getJSONObject(x)
+                        val frm = HashMap<String, String>()
+                        frm["id"] = jsonObject.getString("id")
+                        frm["nama_pelanggan"] = jsonObject.getString("nama_pelanggan")
+                        frm["alamat"] = jsonObject.getString("alamat")
+                        frm["barang"] = jsonObject.getString("barang")
+                        frm["jumlah"] = jsonObject.getString("jumlah")
+                        frm["harga"] = jsonObject.getString("harga")
+                        frm["img"] = jsonObject.getString("img")
+                        frm["tanggal_input"] = jsonObject.getString("tanggal_input")
 
-                    data.add(frm)
+                        data.add(frm)
+                    }
+                    adapter.notifyDataSetChanged()
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                    Toast.makeText(v.context, "Kesalahan parsing data JSON", Toast.LENGTH_LONG).show()
                 }
-                adapter.notifyDataSetChanged()
             },
             Response.ErrorListener { error ->
-                Toast.makeText(v.context,"Tidak dapat terhubung ke server", Toast.LENGTH_LONG).show()
-            }){
+                Toast.makeText(v.context, "Tidak dapat terhubung ke server", Toast.LENGTH_LONG).show()
+            }) {
             override fun getParams(): MutableMap<String, String>? {
-                val hm = HashMap<String,String>()
-                hm.put("mode", "show_data")
-
+                val hm = HashMap<String, String>()
+                hm["mode"] = "show_data"
                 return hm
             }
         }
@@ -322,5 +422,11 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
         }
         val  queue = Volley.newRequestQueue(v.context)
         queue.add(request)
+    }
+
+    companion object {
+        private const val PERMISSION_REQUEST_CODE = 1001
+        private const val REQUEST_IMAGE_PICK = 100
+        private const val REQUEST_IMAGE_CAPTURE = 101
     }
 }

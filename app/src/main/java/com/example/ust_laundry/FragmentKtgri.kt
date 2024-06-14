@@ -30,7 +30,7 @@ class FragmentKtgri : Fragment(), View.OnClickListener {
         showData()
     }
     var id_kategori = ""
-    val url = "http://172.254.1.38/web_service_laundry/crud_laundry_ktgri.php"
+    val url = "http://192.168.18.40/web_service_tokoasih/crud_ktgri.php"
 
     private fun showData() {
         val request = object : StringRequest(
@@ -41,8 +41,8 @@ class FragmentKtgri : Fragment(), View.OnClickListener {
                 for (x in 0 until jsonArray.length()) {
                     val jsonObject = jsonArray.getJSONObject(x)
                     val frm = HashMap<String, String>()
-                    frm.put("id_kategori",jsonObject.getString("id_kategori"))
-                    frm["kategori"] = jsonObject.getString("kategori")
+                    frm.put("id_barang",jsonObject.getString("id_barang"))
+                    frm["barang"] = jsonObject.getString("barang")
                     frm["harga"] = jsonObject.getString("harga")
                     dataktgri.add(frm)
                 }
@@ -134,19 +134,19 @@ class FragmentKtgri : Fragment(), View.OnClickListener {
                 when(mode) {
                     "insert" -> {
                         hm.put("mode", "insert")
-                        hm.put("kategori", binding.edNamaKategori.text.toString())
+                        hm.put("barang", binding.edNamaKategori.text.toString())
                         hm.put("harga", binding.edHargaKategori.text.toString())
                     }
                     "edit" -> {
                         hm.put("mode", "edit")
-                        hm.put("id_kategori", id_kategori)
-                        hm.put("kategori", binding.edNamaKategori.text.toString())
+                        hm.put("id_barang", id_kategori)
+                        hm.put("barang", binding.edNamaKategori.text.toString())
                         hm.put("harga", binding.edHargaKategori.text.toString())
                     }
                     "delete" -> {
                         hm.put("mode", "delete")
-                        hm.put("id_kategori", id_kategori)
-                        hm.put("kategori", binding.edNamaKategori.text.toString())
+                        hm.put("id_barang", id_kategori)
+                        hm.put("barang", binding.edNamaKategori.text.toString())
                         hm.put("harga", binding.edHargaKategori.text.toString())
                     }
                 }
