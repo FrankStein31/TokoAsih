@@ -13,9 +13,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import com.example.apputs_kelompok5.databinding.FragmentKtgriBinding
 import com.example.ust_laundry.databinding.FragmentKtgriBinding
 import org.json.JSONArray
 import org.json.JSONObject
+import java.lang.reflect.Method
 import java.util.HashMap
 
 class FragmentKtgri : Fragment(), View.OnClickListener {

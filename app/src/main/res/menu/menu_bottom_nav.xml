@@ -2,6 +2,11 @@
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/itemHome"
+        android:icon="@drawable/baseline_home_24"
+        android:title="Home"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/itemPesanan"
         android:icon="@drawable/img"
         android:title="Pesanan"
@@ -9,8 +14,13 @@
 
     <item
         android:id="@+id/itemKatgeori"
-        android:icon="@drawable/ic_premium_wash"
+        android:icon="@drawable/baseline_shopping_bag_24"
         android:title="Barang"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/itemProfile"
+        android:icon="@drawable/baseline_home_work_24"
+        android:title="Profile"
         app:showAsAction="always" />
 
 </menu>
