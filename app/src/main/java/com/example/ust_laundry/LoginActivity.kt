@@ -21,6 +21,7 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         b = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(b.root)
+        getSupportActionBar()?.hide()
 
         preferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 

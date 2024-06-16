@@ -35,7 +35,7 @@
                 android:id="@+id/itemKategori"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="kategori"
+                android:text="Barang"
                 android:maxLines="1"
                 android:layout_marginTop="4dp"/>
 
@@ -56,7 +56,7 @@
                     android:id="@+id/itemBerat"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="berat"
+                    android:text="Jumlah"
                     android:layout_marginTop="4dp"/>
 
                 <TextView

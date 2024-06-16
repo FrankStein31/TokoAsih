@@ -30,15 +30,15 @@ class AdapterKategori(val dataktg: List<HashMap<String,String>>, val parent: Fra
 
     override fun onBindViewHolder(holder: HolderDataAdapter, position: Int) {
         val item = dataktg[position]
-        holder.ktg.text = item["kategori"]
+        holder.ktg.text = item["barang"]
         holder.hrg.text = "Harga : Rp." + item["harga"]
 
         holder.itemView.setOnClickListener {
-            val kategori = item["kategori"]
+            val kategori = item["barang"]
             val harga = item["harga"]
 
             // Set data ke EditText edNamaKategori dan edHargaKategori
-            parent.id_kategori = item.get("id_kategori").toString()
+            parent.id_kategori = item.get("id_barang").toString()
             parent.binding.edNamaKategori.setText(kategori)
             parent.binding.edHargaKategori.setText(harga)
         }

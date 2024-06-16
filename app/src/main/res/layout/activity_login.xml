@@ -1,64 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp"
+    tools:context=".LoginActivity">
 
-    <EditText
-        android:id="@+id/txPwd"
-        android:layout_width="0dp"
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="80dp"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:minHeight="48dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/textView"
-        app:layout_constraintTop_toBottomOf="@+id/textView2"
-        tools:ignore="SpeakableTextPresentCheck" />
+        android:layout_margin="24dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="16dp">
 
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Password"
-        app:layout_constraintStart_toStartOf="@+id/txUsn"
-        app:layout_constraintTop_toBottomOf="@+id/txUsn" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-    <EditText
-        android:id="@+id/txUsn"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="80dp"
-        android:ems="10"
-        android:inputType="textPersonName"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/textView"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
-        tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Selamat Datang"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:textAlignment="center"/>
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="80dp"
-        android:layout_marginTop="224dp"
-        android:text="Username"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints" />
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="16dp"/>
 
-    <Button
-        android:id="@+id/btLogin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Login"
-        app:layout_constraintEnd_toEndOf="@+id/txPwd"
-        app:layout_constraintTop_toBottomOf="@+id/txPwd" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <EditText
+                android:id="@+id/txUsn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Username"
+                android:inputType="textEmailAddress"/>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="16dp"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:id="@+id/txPwd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Password"
+                    android:inputType="textPassword"/>
+
+            </RelativeLayout>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="16dp"/>
+
+            <Button
+                android:id="@+id/btLogin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/teal_700"
+                app:cornerRadius="20dp"
+                android:text="Login"/>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="16dp"/>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <ImageView
+        android:id="@+id/logologin"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/logo"/>
+
+</LinearLayout>

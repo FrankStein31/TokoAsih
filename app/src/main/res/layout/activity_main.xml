@@ -11,7 +11,7 @@
         android:id="@+id/tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Selamat Datang Ananta"
+        android:text="Selamat Datang"
         android:textColor="@color/black"
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/imageView3"
@@ -30,13 +30,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@drawable/ic_laundry" />
+        app:srcCompat="@drawable/logo" />
 
     <TextView
         android:id="@+id/textView6"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="LAUNDRY KITA"
+        android:text="TOKO ASIH"
         app:layout_constraintEnd_toEndOf="@+id/imageView3"
         app:layout_constraintStart_toStartOf="@+id/imageView3"
         app:layout_constraintTop_toBottomOf="@+id/imageView3" />
