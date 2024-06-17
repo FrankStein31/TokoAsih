@@ -2,35 +2,22 @@ package com.example.ust_laundry
 
 import android.Manifest
 import android.app.AlertDialog
-import android.content.ContentResolver
 import android.content.DialogInterface
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.database.Cursor
-import android.database.sqlite.SQLiteDatabase
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.os.StrictMode
 import android.provider.MediaStore
-import android.provider.OpenableColumns
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.CursorAdapter
-import android.widget.ListAdapter
-import android.widget.SimpleCursorAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
@@ -40,7 +27,6 @@ import com.livinglifetechway.quickpermissions_kotlin.runWithPermissions
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -50,6 +36,7 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
     lateinit var b:FragmentPesananBinding
     lateinit var thisParent: MainActivity
     lateinit var dialog: AlertDialog.Builder
+    lateinit var fragmentPesanan: FragmentPesanan
     var selectedKategori: String = ""
     private lateinit var currentPhotoPath: String
     lateinit var v:View
@@ -59,7 +46,7 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
     var namaFile = ""
     var fileUri = Uri.parse("")
 
-    val url = "http://192.168.18.40/web_service_tokoasih/crud.php"
+    val url = "http://192.168.0.56/web_service_tokoasih/crud.php"
 
     val ktgSpinner = mutableListOf<String>()
     lateinit var strKategori: ArrayAdapter<String>
@@ -140,9 +127,14 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
         b = FragmentPesananBinding.inflate(layoutInflater)
         v = b.root
 
+//        if (ktgSpinner.isNotEmpty()) {
+//            selectedKategori = ktgSpinner[0]
+//            b.spKategori.setText(selectedKategori, false)
+//        }
         if (ktgSpinner.isNotEmpty()) {
-            selectedKategori = ktgSpinner[0]
-            b.spKategori.setText(selectedKategori, false)
+            for (kategori in ktgSpinner) {
+                b.spKategori.setText(kategori, false)
+            }
         }
 
         photoHelper = PhotoHelper()
@@ -410,7 +402,9 @@ class FragmentPesanan :Fragment(), View.OnClickListener {
                 }
             },
             Response.ErrorListener { error ->
+                val errorCode = error.networkResponse?.statusCode ?: -1
                 Toast.makeText(v.context,"Tidak dapat terhubung ke server", Toast.LENGTH_LONG).show()
+                Log.e("Error","Error : $errorCode")
             }){
             override fun getParams(): MutableMap<String, String>? {
                 val hm = java.util.HashMap<String, String>()

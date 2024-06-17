@@ -11,7 +11,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 
-class AdapterPesanan(val data: List<HashMap<String,String>>, val parent: FragmentPesanan) :
+class AdapterPesanan(val data: List<HashMap<String, String>>, val parent: FragmentPesanan) :
     RecyclerView.Adapter<AdapterPesanan.HolderDataAdapter>() {
 
     class HolderDataAdapter(v: View) : RecyclerView.ViewHolder(v) {
@@ -62,7 +62,9 @@ class AdapterPesanan(val data: List<HashMap<String,String>>, val parent: Fragmen
             // Pastikan spKategori memiliki adapter dan daftar barang yang sesuai
             val adapter = parent.b.spKategori.adapter as ArrayAdapter<String>
             val posisiBarang = adapter.getPosition(barang)
-            parent.b.spKategori.setSelection(posisiBarang)
+            if (posisiBarang >= 0) {
+                parent.b.spKategori.setSelection(posisiBarang)
+            }
 
             parent.b.edAlamat.setText(item["alamat"].toString())
             parent.b.edBerat.setText(item["jumlah"].toString())
